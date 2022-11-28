@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+    id 'application'
+    id "com.github.johnrengelman.shadow" version "7.1.2"
+}
+
+mainClassName = 'xyz.maywr.jugg.ServerBootstrap'
+group 'xyz.maywr'
+version '0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.ow2.asm:asm:9.3'
+    implementation 'net.lingala.zip4j:zip4j:2.11.1'
+    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'net.dv8tion:JDA:5.0.0-alpha.13'
+
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+}

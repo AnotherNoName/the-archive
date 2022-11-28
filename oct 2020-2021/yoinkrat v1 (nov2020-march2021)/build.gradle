@@ -1,0 +1,94 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "https://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath "net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT"
+        classpath "com.github.jengelman.gradle.plugins:shadow:1.2.3"
+    }
+}
+
+apply plugin: "net.minecraftforge.gradle.forge"
+apply plugin: "com.github.johnrengelman.shadow"
+
+group = 'me.nigger'
+version = '1.0-SNAPSHOT'
+archivesBaseName = 'injector'
+
+minecraft {
+    version = project.forgeVersion
+    runDir = "run"
+    mappings = project.mcpVersion
+    makeObfSourceJar = false
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'com.squareup.okhttp', name: 'okhttp', version: '2.7.5'
+    compile group: 'com.squareup.okio', name: 'okio', version: '1.6.0'
+}
+
+reobf {
+    shadowJar {
+        mappingType = 'SEARGE'
+        classpath = sourceSets.main.compileClasspath
+    }
+}
+
+shadowJar {
+    dependencies {
+        include(dependency("com.squareup.okhttp:okhttp"))
+        include(dependency("com.squareup.okio:okio"))
+    }
+
+    exclude "dummyThing"
+    exclude "LICENSE.txt"
+    classifier = 'release'
+}
+
+task clientJar(type: Jar, dependsOn: jar) {
+    from(zipTree(shadowJar.archivePath)) {
+        exclude "me/nigger/injector/**"
+    }
+    baseName = ""
+    version = ""
+    classifier = "rat"
+}
+
+task loaderJar(type: Jar, dependsOn: shadowJar) {
+    from(zipTree(shadowJar.archivePath)) {
+        include "me/nigger/injector/**"
+    }
+    baseName = ""
+    version = ""
+    classifier = "injector"
+    manifest = jar.manifest
+}
+
+build.dependsOn(clientJar, loaderJar)
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include "mcmod.info"
+        expand "version": project.version, "mcversion": project.minecraft.version
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude "mcmod.info"
+    }
+}
+
+task copyDeps(type: Copy) {
+    from configurations.runtime
+    into "build/libs/libs"
+}
